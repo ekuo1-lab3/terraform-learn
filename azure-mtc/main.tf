@@ -96,7 +96,6 @@ resource "azurerm_network_interface" "mtc-nic" {
   }
 }
 
-/*
 resource "azurerm_linux_virtual_machine" "mtc-vm" {
   name                = "mtc-vm"
   resource_group_name = azurerm_resource_group.mtc-rg.name
@@ -124,5 +123,3 @@ resource "azurerm_linux_virtual_machine" "mtc-vm" {
     version   = "latest"
   }
 }
-
-*/
