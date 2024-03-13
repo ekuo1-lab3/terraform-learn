@@ -16,7 +16,7 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-resource "azurerm_resource_group" "test_group" {
-  name     = "hello"
+resource "azurerm_resource_group" "vm_test_group" {
+  name     = "vm_test"
   location = "australia east"
 }

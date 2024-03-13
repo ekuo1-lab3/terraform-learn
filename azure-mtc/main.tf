@@ -10,7 +10,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "da0c5887-9e8b-43b3-83eb-5586c330a121" 
+  subscription_id = "da0c5887-9e8b-43b3-83eb-5586c330a121"
 }
 
 resource "azurerm_resource_group" "mtc-rg" {
@@ -57,8 +57,8 @@ resource "azurerm_network_security_rule" "mtc-dev-rule" {
   protocol                    = "*"
   source_port_range           = "*"
   destination_port_range      = "*"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "103.51.113.10/32"
+  source_address_prefix       = "103.51.113.10/32"
+  destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.mtc-rg.name
   network_security_group_name = azurerm_network_security_group.mtc-sg.name
 }
@@ -106,6 +106,8 @@ resource "azurerm_linux_virtual_machine" "mtc-vm" {
     azurerm_network_interface.mtc-nic.id,
   ]
 
+  custom_data = filebase64("customdata.tpl")
+
   admin_ssh_key {
     username   = "adminuser"
     public_key = file("~/.ssh/mtc_id_rsa.pub")
@@ -116,10 +118,28 @@ resource "azurerm_linux_virtual_machine" "mtc-vm" {
     storage_account_type = "Standard_LRS"
   }
 
+  provisioner "local-exec" {
+    command = templatefile("${var.host_os}-ssh-script.tpl", {
+      hostname     = self.public_ip_address,
+      user         = "adminuser",
+      identityfile = "~/.ssh/mtc_id_rsa"
+    })
+    interpreter = var.host_os == "linux" ? ["bash", "-c"] : ["PowerShell", "-Command"]
+  }
+
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
+}
+
+data "azurerm_public_ip" "mtc_ip_data" {
+  name                = azurerm_public_ip.mtc-ip.name
+  resource_group_name = azurerm_resource_group.mtc-rg.name
+}
+
+output "public_ip_address" {
+  value = "${azurerm_linux_virtual_machine.mtc-vm.name}: ${data.azurerm_public_ip.mtc_ip_data.ip_address}"
 }
