@@ -4,6 +4,9 @@
 #  Ignore variables files
 *.auto.tfvars
 
+#  Ignore secret variable files
+secret.tfvars
+
 #  Ignore override files
 *.tfoverride
 
