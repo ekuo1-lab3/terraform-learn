@@ -16,45 +16,78 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
+resource "azurerm_resource_group" "vm-rg" {
+  name     = "vm-rg"
+  location = "Australia East"
 }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
+resource "azurerm_virtual_network" "vm-vn" {
+  name                = "vm-vn"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.vm-rg.location
+  resource_group_name = azurerm_resource_group.vm-rg.name
 }
 
-resource "azurerm_subnet" "example" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+resource "azurerm_subnet" "vm-subnet" {
+  name                 = "vm-subnet"
+  resource_group_name  = azurerm_resource_group.vm-rg.name
+  virtual_network_name = azurerm_virtual_network.vm-vn.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_network_interface" "example" {
-  name                = "example-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+resource "azurerm_public_ip" "vm-pub-ip" {
+  name                = "vm-pub-ip"
+  resource_group_name = azurerm_resource_group.vm-rg.name
+  location            = azurerm_resource_group.vm-rg.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "vm-nic" {
+  name                = "vm-nic"
+  location            = azurerm_resource_group.vm-rg.location
+  resource_group_name = azurerm_resource_group.vm-rg.name
 
   ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.example.id
+    name                          = "vm-ip"
+    subnet_id                     = azurerm_subnet.vm-subnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id = azurerm_public_ip.vm-pub-ip.id
   }
 }
 
-resource "azurerm_linux_virtual_machine" "example" {
-  name                = "example-machine"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  size                = "Standard_F2"
+resource "azurerm_network_security_group" "vm-sg" {
+  name                = "vm-sg"
+  location            = azurerm_resource_group.vm-rg.location
+  resource_group_name = azurerm_resource_group.vm-rg.name
+}
+
+resource "azurerm_network_security_rule" "vm-allow-ssh-sr" {
+  name                        = "vm-allow-ssh-sr"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "22"
+  source_address_prefix       = "103.51.113.10/32"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.vm-rg.name
+  network_security_group_name = azurerm_network_security_group.vm-sg.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "vm-sga" {
+  subnet_id                 = azurerm_subnet.vm-subnet.id
+  network_security_group_id = azurerm_network_security_group.vm-sg.id
+}
+
+resource "azurerm_linux_virtual_machine" "vm-vm" {
+  name                = "vm-vm"
+  resource_group_name = azurerm_resource_group.vm-rg.name
+  location            = azurerm_resource_group.vm-rg.location
+  size                = "Standard_B1ls"
   admin_username      = "adminuser"
   network_interface_ids = [
-    azurerm_network_interface.example.id,
+    azurerm_network_interface.vm-nic.id,
   ]
 
   admin_ssh_key {
@@ -73,4 +106,8 @@ resource "azurerm_linux_virtual_machine" "example" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+}
+
+output "ip-address" {
+  value = azurerm_public_ip.vm-pub-ip.ip_address
 }
