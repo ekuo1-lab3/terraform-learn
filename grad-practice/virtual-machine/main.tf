@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = ">=3.0.0"
     }
   }
 }
@@ -51,7 +51,7 @@ resource "azurerm_network_interface" "vm-nic" {
     name                          = "vm-ip"
     subnet_id                     = azurerm_subnet.vm-subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.vm-pub-ip.id
+    public_ip_address_id          = azurerm_public_ip.vm-pub-ip.id
   }
 }
 
