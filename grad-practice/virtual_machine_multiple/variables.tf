@@ -24,3 +24,9 @@ variable "client_name" {
   description = "Service Principal display name"
   type        = string
 }
+
+variable "my_public_ip" {
+  description = "My laptop IP"
+  type        = string
+}
+

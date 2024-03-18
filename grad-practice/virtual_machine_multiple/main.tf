@@ -53,7 +53,7 @@ resource "azurerm_network_security_rule" "allow_ssh_sr" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = "22"
-  source_address_prefix       = "103.51.113.10/32"
+  source_address_prefix       = var.my_public_ip
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg.name
