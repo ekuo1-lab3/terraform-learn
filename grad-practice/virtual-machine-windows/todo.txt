@@ -1,0 +1,9 @@
+https://www.reddit.com/r/Terraform/comments/mgobi8/run_powershell_script_on_azure_vm_creation/
+
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_extension
+
+https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=powershell
+
+https://www.rootusers.com/how-to-enable-ping-in-windows-server-2016-firewall/
+
+https://learn.microsoft.com/en-us/azure/virtual-machines/windows/connect-ssh?tabs=azurecli

@@ -1,6 +1,6 @@
-variable "location" {
-  description = "Azure resource location"
-  type        = string
+variable "resource_group" {
+  description = "Resource Group arguments"
+  type        = map(string)
 }
 
 variable "count_index" {
@@ -8,8 +8,13 @@ variable "count_index" {
   type        = number
 }
 
-variable "my_public_ip" {
-  description = "Laptop Public IP address"
+variable "route_table_id" {
+  description = "Hub and Spoke route table id"
+  type = string
+}
+  
+variable "security_group_id" {
+  description = "Network security group id"
   type        = string
 }
 
@@ -18,95 +23,62 @@ variable "source_image" {
   type        = map(string)
 }
 
-# Common resource group
-resource "azurerm_resource_group" "this" {
-  name     = "vm_rg${var.count_index}"
-  location = var.location
-}
-
 resource "azurerm_virtual_network" "this" {
-  name                = "vn"
+  name                = "vn${var.count_index}"
   address_space       = ["10.${var.count_index}.0.0/16"]
-  location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
+  location            = var.resource_group.location
+  resource_group_name = var.resource_group.name
 }
 
 resource "azurerm_subnet" "this" {
-  name                 = "subnet"
-  resource_group_name  = azurerm_resource_group.this.name
+  name                 = "subnet${var.count_index}"
+  resource_group_name  = var.resource_group.name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = ["10.${var.count_index}.0.0/24"]
 }
 
 resource "azurerm_public_ip" "this" {
-  name                = "pub-ip"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
+  name                = "pub-ip${var.count_index}"
+  resource_group_name = var.resource_group.name
+  location            = var.resource_group.location
   allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "this" {
-  name                = "nic"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
+  name                = "nic${var.count_index}"
+  location            = var.resource_group.location
+  resource_group_name = var.resource_group.name
+  enable_ip_forwarding = true
 
   ip_configuration {
-    name                          = "config1"
+    name                          = "config${var.count_index}"
     subnet_id                     = azurerm_subnet.this.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.this.id
   }
 }
 
-resource "azurerm_network_security_group" "this" {
-  name                = "sg"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
-}
-
-resource "azurerm_network_security_rule" "allow_ssh_sr" {
-  name                        = "allow-ssh-sr"
-  priority                    = 100
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "22"
-  source_address_prefix       = var.my_public_ip
-  destination_address_prefix  = "*"
-  resource_group_name         = azurerm_resource_group.this.name
-  network_security_group_name = azurerm_network_security_group.this.name
-}
-
-resource "azurerm_network_security_rule" "allow_rdp_sr" {
-  count                       = var.source_image.offer == "WindowsServer" ? 1 : 0
-  name                        = "allow-rdp-sr"
-  priority                    = 101
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "3389"
-  source_address_prefix       = var.my_public_ip
-  destination_address_prefix  = "*"
-  resource_group_name         = azurerm_resource_group.this.name
-  network_security_group_name = azurerm_network_security_group.this.name
+resource "azurerm_subnet_route_table_association" "this" {
+  count = var.count_index != 0 ? 1 : 0
+  subnet_id      = azurerm_subnet.this.id
+  route_table_id = var.route_table_id 
 }
 
 resource "azurerm_subnet_network_security_group_association" "this" {
   subnet_id                 = azurerm_subnet.this.id
-  network_security_group_id = azurerm_network_security_group.this.id
+  network_security_group_id = var.security_group_id
 }
 
+# if linux vm
 resource "azurerm_linux_virtual_machine" "this" {
   count = var.source_image.offer != "WindowsServer" ? 1 : 0
 
-  name                = "linux-vm"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
+  name                = "vm${var.count_index}"
+  resource_group_name = var.resource_group.name
+  location            = var.resource_group.location
   size                = "Standard_B1ls"
   admin_username      = "adminuser"
-  admin_password      = "123456789Mow"
+  #admin_password      = "123456789Mow"
   network_interface_ids = [
     azurerm_network_interface.this.id,
   ]
@@ -129,12 +101,13 @@ resource "azurerm_linux_virtual_machine" "this" {
   }
 }
 
+# if windows vm
 resource "azurerm_windows_virtual_machine" "this" {
   count = var.source_image.offer == "WindowsServer" ? 1 : 0
 
-  name                = "windows-vm"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = var.location
+  name                = "vm${var.count_index}"
+  resource_group_name = var.resource_group.name
+  location            = var.resource_group.location
   size                = "Standard_B1ls"
   admin_username      = "adminuser"
   admin_password      = "123456789Mow"
@@ -155,10 +128,11 @@ resource "azurerm_windows_virtual_machine" "this" {
   }
 }
 
+# scheduling shutdown, but ignore for now
 # https://stackoverflow.com/questions/52651326/create-azure-automation-start-stop-solution-through-terraform
 # resource "azurerm_dev_test_global_vm_shutdown_schedule" "this" {
 #   virtual_machine_id = azurerm_virtual_machine.this.id
-#   location           = var.location
+#   location           = var.resource_group.location
 #   enabled            = true
 
 #   daily_recurrence_time = "1730"
@@ -170,5 +144,23 @@ resource "azurerm_windows_virtual_machine" "this" {
 # }
 
 output "ip-address" {
-  value = azurerm_public_ip.this.ip_address
+  description = "vm public ip address"
+  value       = azurerm_public_ip.this.ip_address
 }
+
+output "virtual_network_info" {
+  description = "Virtual network name and id"
+  value       = { name = azurerm_virtual_network.this.name, id = azurerm_virtual_network.this.id }
+}
+
+
+
+
+
+
+
+
+
+
+
+
