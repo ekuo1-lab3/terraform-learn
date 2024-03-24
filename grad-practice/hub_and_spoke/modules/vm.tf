@@ -128,21 +128,6 @@ resource "azurerm_windows_virtual_machine" "this" {
   }
 }
 
-# scheduling shutdown, but ignore for now
-# https://stackoverflow.com/questions/52651326/create-azure-automation-start-stop-solution-through-terraform
-# resource "azurerm_dev_test_global_vm_shutdown_schedule" "this" {
-#   virtual_machine_id = azurerm_virtual_machine.this.id
-#   location           = var.resource_group.location
-#   enabled            = true
-
-#   daily_recurrence_time = "1730"
-#   timezone              = "AUS Eastern Standard Time"
-
-#   notification_settings {
-#     enabled = false
-#   }
-# }
-
 output "ip-address" {
   description = "vm public ip address"
   value       = azurerm_public_ip.this.ip_address

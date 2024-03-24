@@ -2,9 +2,9 @@
 
 # Define array of IP addresses and their corresponding identifiers
 declare -A pub_ip_addresses=(
-  ["vm0"]="20.191.241.238"
-  ["vm1"]="20.191.240.174"
-  ["vm2"]="20.191.192.116"
+  ["vm0"]="13.72.255.191"
+  ["vm1"]="13.72.255.57"
+  ["vm2"]="13.72.255.26"
 )
 
 declare -A pri_ip_addresses=(

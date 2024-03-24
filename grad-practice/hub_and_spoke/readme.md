@@ -10,7 +10,7 @@ Create 3 virtual machines, each belonging to a separate virtual machine. Set up 
 
 # How to run
 
-1. Replace the subscription id in  variables.tf with your subscription id
+1. Replace the subscription id in variables.tf with your subscription id
 2. az login (not needed if using a service principal)
 3. terraform apply
 4. ssh into the hub vm with "ssh adminuser@PUBLIC_IP_ADDRESS"
