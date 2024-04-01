@@ -8,9 +8,9 @@ declare -A pub_ip_addresses=(
 )
 
 declare -A pri_ip_addresses=(
-  ["vm0"]="10.0.0.4"
-  ["vm1"]="10.1.0.4"
-  ["vm2"]="10.2.0.4"
+  ["vm0"]="vm0.hub_spoke.com"
+  ["vm1"]="vm1.hub_spoke.com"
+  ["vm2"]="vm2.hub_spoke.com"
 )
 
 # Function to SSH into each IP and ping all other IPs

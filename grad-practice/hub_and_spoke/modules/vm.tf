@@ -18,6 +18,11 @@ variable "security_group_id" {
   type        = string
 }
 
+variable "private_dns_zone_name" {
+  description = "Private DNS Zone name"
+  type = string
+}
+
 variable "source_image" {
   description = "source_image map, including publisher, offer, sku, version"
   type        = map(string)
@@ -67,6 +72,14 @@ resource "azurerm_subnet_route_table_association" "this" {
 resource "azurerm_subnet_network_security_group_association" "this" {
   subnet_id                 = azurerm_subnet.this.id
   network_security_group_id = var.security_group_id
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "this" {
+  name = "vnet${var.count_index}"
+  resource_group_name = var.resource_group.name
+  private_dns_zone_name = var.private_dns_zone_name
+  virtual_network_id = azurerm_virtual_network.this.id
+  registration_enabled = true
 }
 
 # if linux vm

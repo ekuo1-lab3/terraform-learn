@@ -20,6 +20,9 @@ provider "azurerm" {
 resource "azurerm_resource_group" "this" {
   name     = "rg"
   location = var.location
+  tags = {
+    "AutoShutdownSchedule" = "18:00->8:00,Saturday,Sunday"
+  }
 }
 
 # Common network security group
@@ -73,7 +76,7 @@ resource "azurerm_network_security_rule" "allow_icmp_sr" {
 
 resource "azurerm_route_table" "this" {
   name                = "spoke_route_table"
-  location            = azurerm_resource_group.this.location 
+  location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
 
   route {
@@ -91,16 +94,22 @@ resource "azurerm_route_table" "this" {
   }
 }
 
+resource "azurerm_private_dns_zone" "this" {
+  name                = "hub_spoke.com"
+  resource_group_name = azurerm_resource_group.this.name
+}
+
 # Module import
 module "vms" {
   count  = 3
   source = "./modules"
 
-  resource_group    = { name = azurerm_resource_group.this.name, location = azurerm_resource_group.this.location }
-  count_index       = count.index
-  route_table_id    = azurerm_route_table.this.id
-  security_group_id = azurerm_network_security_group.this.id
-  source_image      = local.source_images[count.index]
+  resource_group        = { name = azurerm_resource_group.this.name, location = azurerm_resource_group.this.location }
+  count_index           = count.index
+  route_table_id        = azurerm_route_table.this.id
+  security_group_id     = azurerm_network_security_group.this.id
+  private_dns_zone_name = azurerm_private_dns_zone.this.name
+  source_image          = local.source_images[count.index]
 }
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
@@ -119,6 +128,8 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   remote_virtual_network_id = module.vms[0].virtual_network_info.id
   allow_forwarded_traffic   = true
 }
+
+
 
 output "pub_ip_output" {
   value = module.vms[*].ip-address
