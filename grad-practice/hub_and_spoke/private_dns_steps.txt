@@ -1,0 +1,13 @@
+create private dns
+attach vnets to it
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link
+
+open port 53
+
+https://learn.microsoft.com/en-us/azure/dns/private-dns-scenarios
+ping vm1.hub_spoke.net
+
+
+other alternatives
+need a private dns resolver, or turn a vm into dns server
+e.g. https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-get-started-portal

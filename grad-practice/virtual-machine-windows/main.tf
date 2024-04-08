@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = ">=3.0.0"
     }
   }
 }
@@ -51,7 +51,7 @@ resource "azurerm_network_interface" "vm-nic" {
     name                          = "vm-ip"
     subnet_id                     = azurerm_subnet.vm-subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.vm-pub-ip.id
+    public_ip_address_id          = azurerm_public_ip.vm-pub-ip.id
   }
 }
 
@@ -69,7 +69,7 @@ resource "azurerm_network_security_rule" "vm-allow-ssh-sr" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = "22"
-  source_address_prefix       = "103.51.113.10/32"
+  source_address_prefix       = var.my_public_ip
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.vm-rg.name
   network_security_group_name = azurerm_network_security_group.vm-sg.name
@@ -80,20 +80,16 @@ resource "azurerm_subnet_network_security_group_association" "vm-sga" {
   network_security_group_id = azurerm_network_security_group.vm-sg.id
 }
 
-resource "azurerm_linux_virtual_machine" "vm-vm" {
+resource "azurerm_windows_virtual_machine" "vm-vm" {
   name                = "vm-vm"
   resource_group_name = azurerm_resource_group.vm-rg.name
   location            = azurerm_resource_group.vm-rg.location
-  size                = "Standard_B1ls"
+  size                = "Standard_DS1_v2"
   admin_username      = "adminuser"
+  admin_password      = "123456789Mow"
   network_interface_ids = [
     azurerm_network_interface.vm-nic.id,
   ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -101,9 +97,9 @@ resource "azurerm_linux_virtual_machine" "vm-vm" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "smalldisk 2019-Datacenter"
     version   = "latest"
   }
 }

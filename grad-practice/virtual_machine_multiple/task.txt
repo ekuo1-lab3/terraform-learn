@@ -1,0 +1,5 @@
+make 5 resource groups with count
+make 5 resource groupw tiht foreach
+Understand the different data types ( simple vs complex)
+Modularise your vm (that is make it a module)
+make 5 of these with count and foreach and try and understand the difference
