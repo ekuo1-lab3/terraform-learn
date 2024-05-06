@@ -17,3 +17,13 @@ steps:
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
+
+- task: TerraformTaskV4@4
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    backendServiceArm: 'Emily Visual Studio Enterprise Subscription – MPN(cb20e12e-b67f-43aa-9fe9-39446ffeef7c)'
+    backendAzureRmResourceGroupName: 'devops'
+    backendAzureRmStorageAccountName: 'azuredevopsstorage65798'
+    backendAzureRmContainerName: 'devops'
+    backendAzureRmKey: 'terraform.tfstate'
