@@ -22,6 +22,7 @@ steps:
   inputs:
     provider: 'azurerm'
     command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/grad-practice/management_groups'
     backendServiceArm: 'Emily Visual Studio Enterprise Subscription – MPN(cb20e12e-b67f-43aa-9fe9-39446ffeef7c)'
     backendAzureRmResourceGroupName: 'devops'
     backendAzureRmStorageAccountName: 'azuredevopsstorage65798'
