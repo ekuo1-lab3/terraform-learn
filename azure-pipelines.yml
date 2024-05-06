@@ -27,4 +27,11 @@ steps:
     backendAzureRmResourceGroupName: 'devops'
     backendAzureRmStorageAccountName: 'azuredevopsstorage65798'
     backendAzureRmContainerName: 'devops'
-    backendAzureRmKey: 'terraform.tfstate'
+    backendAzureRmKey: 'test.terraform.tfstate'
+
+- task: TerraformTaskV4@4
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/grad-practice/management_groups'
+    environmentServiceNameAzureRM: 'Emily Visual Studio Enterprise Subscription – MPN(cb20e12e-b67f-43aa-9fe9-39446ffeef7c)'
