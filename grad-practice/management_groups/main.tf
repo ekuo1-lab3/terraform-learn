@@ -5,13 +5,13 @@ terraform {
       version = "=3.0.0"
     }
   }
-  backend "azurerm" {
-    resource_group_name  = "devops"
-    storage_account_name = "azuredevopsstorage65798"
-    container_name       = "devops"
-    key                  = "test.terraform.tfstate"
-    use_azuread_auth     = true
-  }
+  # backend "azurerm" {
+  #   resource_group_name  = "devops"
+  #   storage_account_name = "azuredevopsstorage65798"
+  #   container_name       = "devops"
+  #   key                  = "test.terraform.tfstate"
+  #   use_azuread_auth     = true
+  # }
 }
 
 provider "azurerm" {
